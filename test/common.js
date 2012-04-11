@@ -109,6 +109,8 @@ process.on('exit', function() {
 
   if (global.ArrayBuffer) {
     knownGlobals.push(ArrayBuffer);
+    knownGlobals.push(ArrayBufferView);
+    knownGlobals.push(TypedArray);
     knownGlobals.push(Int8Array);
     knownGlobals.push(Uint8Array);
     knownGlobals.push(Uint8ClampedArray);

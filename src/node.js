@@ -159,6 +159,10 @@
     global.GLOBAL = global;
     global.root = global;
     global.Buffer = NativeModule.require('buffer').Buffer;
+    var types = NativeModule.require('typed_arrays');
+    for (var name in types) {
+      global[name] = types[name];
+    }
   };
 
   startup.globalTimeouts = function() {

@@ -80,7 +80,6 @@ typedef int mode_t;
 # include "node_crypto.h"
 #endif
 #include "node_script.h"
-#include "v8_typed_array.h"
 
 using namespace v8;
 
@@ -2764,7 +2763,6 @@ int Start(int argc, char *argv[]) {
 
   // Use original argv, as we're just copying values out of it.
   Handle<Object> process_l = SetupProcessObject(argc, argv);
-  v8_typed_array::AttachBindings(context->Global());
 
   // Create all the objects, load modules, do everything.
   // so your next reading stop should be node::Load()!

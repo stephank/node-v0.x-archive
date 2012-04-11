@@ -42,6 +42,7 @@
       'lib/timers.js',
       'lib/tls.js',
       'lib/tty.js',
+      'lib/typed_arrays.js',
       'lib/url.js',
       'lib/util.js',
       'lib/vm.js',
@@ -89,7 +90,6 @@
         'src/timer_wrap.cc',
         'src/tty_wrap.cc',
         'src/process_wrap.cc',
-        'src/v8_typed_array.cc',
         'src/udp_wrap.cc',
         # headers to make for a more pleasant IDE experience
         'src/handle_wrap.h',
@@ -110,7 +110,6 @@
         'src/req_wrap.h',
         'src/slab_allocator.h',
         'src/stream_wrap.h',
-        'src/v8_typed_array.h',
         'deps/http_parser/http_parser.h',
         '<(SHARED_INTERMEDIATE_DIR)/node_natives.h',
         # javascript files to make for an even more pleasant IDE experience
