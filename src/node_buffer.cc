@@ -60,10 +60,19 @@ using namespace v8;
           String::New("end cannot be longer than parent.length")));  \
   }
 
+static Persistent<String> int8_symbol;
+static Persistent<String> uint8_symbol;
+static Persistent<String> int16_symbol;
+static Persistent<String> uint16_symbol;
+static Persistent<String> int32_symbol;
+static Persistent<String> uint32_symbol;
+static Persistent<String> float_symbol;
+static Persistent<String> double_symbol;
+static Persistent<String> pixel_symbol;
 
 static Persistent<String> length_symbol;
 static Persistent<String> chars_written_sym;
-static Persistent<String> write_sym;
+
 Persistent<FunctionTemplate> Buffer::constructor_template;
 
 
@@ -694,19 +703,70 @@ Handle<Value> Buffer::ByteLength(const Arguments &args) {
 Handle<Value> Buffer::MakeFastBuffer(const Arguments &args) {
   HandleScope scope;
 
-  if (!Buffer::HasInstance(args[0])) {
+  if (!Buffer::HasInstance(args[1])) {
     return ThrowException(Exception::TypeError(String::New(
-            "First argument must be a Buffer")));
+            "Argument must be a Buffer")));
   }
 
-  Buffer *buffer = ObjectWrap::Unwrap<Buffer>(args[0]->ToObject());
-  Local<Object> fast_buffer = args[1]->ToObject();;
+  Local<Object> fast_buffer = args[0]->ToObject();
+  char* data = Buffer::Data(args[1]->ToObject());
   uint32_t offset = args[2]->Uint32Value();
-  uint32_t length = args[3]->Uint32Value();
+  enum ExternalArrayType type = kExternalUnsignedByteArray;
+  uint32_t length;
 
-  fast_buffer->SetIndexedPropertiesToExternalArrayData(buffer->data_ + offset,
-                                                       kExternalUnsignedByteArray,
-                                                       length);
+  if (args[4]->IsUndefined()) {
+    length = args[3]->Uint32Value();
+  }
+  else {
+    Local<Value> type_arg = args[3];
+    length = args[4]->Uint32Value();
+
+    size_t type_size = 1;
+    if (type_arg->StrictEquals(int8_symbol)) {
+      type = kExternalByteArray;
+      type_size = 1;
+    }
+    else if (type_arg->StrictEquals(uint8_symbol)) {
+      type = kExternalUnsignedByteArray;
+      type_size = 1;
+    }
+    else if (type_arg->StrictEquals(int16_symbol)) {
+      type = kExternalShortArray;
+      type_size = 2;
+    }
+    else if (type_arg->StrictEquals(uint16_symbol)) {
+      type = kExternalUnsignedShortArray;
+      type_size = 2;
+    }
+    else if (type_arg->StrictEquals(int32_symbol)) {
+      type = kExternalIntArray;
+      type_size = 4;
+    }
+    else if (type_arg->StrictEquals(uint32_symbol)) {
+      type = kExternalUnsignedIntArray;
+      type_size = 4;
+    }
+    else if (type_arg->StrictEquals(float_symbol)) {
+      type = kExternalFloatArray;
+      type_size = 4;
+    }
+    else if (type_arg->StrictEquals(double_symbol)) {
+      type = kExternalDoubleArray;
+      type_size = 8;
+    }
+    else if (type_arg->StrictEquals(pixel_symbol)) {
+      type = kExternalPixelArray;
+      type_size = 1;
+    }
+
+    if ((offset & (type_size - 1)) != 0) {
+      return ThrowException(Exception::Error(
+            String::New("Byte offset is not aligned.")));
+    }
+  }
+
+  fast_buffer->SetIndexedPropertiesToExternalArrayData(
+      data + offset, type, length);
 
   return Undefined();
 }
@@ -741,8 +801,18 @@ void Buffer::Initialize(Handle<Object> target) {
   assert(unbase64('\n') == -2);
   assert(unbase64('\r') == -2);
 
-  length_symbol = Persistent<String>::New(String::NewSymbol("length"));
-  chars_written_sym = Persistent<String>::New(String::NewSymbol("_charsWritten"));
+  int8_symbol   = NODE_PSYMBOL("int8");
+  uint8_symbol  = NODE_PSYMBOL("uint8");
+  int16_symbol  = NODE_PSYMBOL("int16");
+  uint16_symbol = NODE_PSYMBOL("uint16");
+  int32_symbol  = NODE_PSYMBOL("int32");
+  uint32_symbol = NODE_PSYMBOL("uint32");
+  float_symbol  = NODE_PSYMBOL("float");
+  double_symbol = NODE_PSYMBOL("double");
+  pixel_symbol  = NODE_PSYMBOL("pixel");
+
+  length_symbol = NODE_PSYMBOL("length");
+  chars_written_sym = NODE_PSYMBOL("_charsWritten");
 
   Local<FunctionTemplate> t = FunctionTemplate::New(Buffer::New);
   constructor_template = Persistent<FunctionTemplate>::New(t);
