@@ -28,30 +28,6 @@
 var common = require('../common');
 var assert = require('assert');
 
-[
-  'ArrayBuffer',
-  'Int8Array',
-  'Uint8Array',
-  'Int16Array',
-  'Uint16Array',
-  'Int32Array',
-  'Uint32Array',
-  'Float32Array',
-  'Float64Array',
-  'Uint8ClampedArray'
-].forEach(function(name) {
-  var expected = '[object ' + name + ']';
-  var clazz = global[name];
-  var obj = new clazz(1);
-
-  assert.equal(obj.toString(), expected);
-  assert.equal(Object.prototype.toString.call(obj), expected);
-
-  obj = new DataView(obj);
-  assert.equal(obj.toString(), '[object DataView]');
-  assert.equal(Object.prototype.toString.call(obj), '[object DataView]');
-});
-
 // initialize a zero-filled buffer
 var buffer = new Buffer(16);
 buffer.fill(0);
@@ -112,7 +88,7 @@ assert.equal(uint8[7], 0x0f);
 
 // determine whether or not typed array values are stored little-endian first
 // internally
-var IS_LITTLE_ENDIAN = (new Uint16Array([0x1234])).buffer[0] === 0x34;
+var IS_LITTLE_ENDIAN = (new Uint16Array([0x1234])).nodeBuffer[0] === 0x34;
 
 if (IS_LITTLE_ENDIAN) {
   assert.equal(uint16[0], 0x0908);
@@ -153,13 +129,8 @@ sub[1] = 0x34;
 assert.equal(uint8[2], 0x12);
 assert.equal(uint8[3], 0x34);
 
-// test .set(index, value), .set(arr, offset) and .get(index)
-uint8.set(1, 0x09);
+// test .set(arr, offset)
 uint8.set([0x0a, 0x0b], 2);
-
-assert.equal(uint8.get(1), 0x09);
-assert.equal(uint8.get(2), 0x0a);
-assert.equal(uint8.get(3), 0x0b);
 
 // test clamped array
 var uint8c = new Uint8ClampedArray(buffer);
@@ -169,8 +140,8 @@ uint8c[1] = 257;
 assert.equal(uint8c[0], 0);
 assert.equal(uint8c[1], 255);
 
-uint8c.set(0, -10);
-uint8c.set(1, 260);
+uint8c[0] = -10;
+uint8c[1] = 260;
 
 assert.equal(uint8c[0], 0);
 assert.equal(uint8c[1], 255);
